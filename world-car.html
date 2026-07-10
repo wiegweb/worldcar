@@ -12,7 +12,7 @@
   *{box-sizing:border-box; margin:0; padding:0; -webkit-touch-callout:none;}
   html,body{height:100%; overflow:hidden; font-family:"Avenir Next","Trebuchet MS",system-ui,sans-serif; color:var(--ink); touch-action:manipulation;}
   #c{position:fixed; inset:0; width:100%; height:100%; display:block; background:var(--sky);}
-
+ 
   /* ---------- HUD ---------- */
   #hud{position:fixed; top:0; left:0; right:0; padding:10px 14px; display:none; gap:10px;
        flex-wrap:wrap; align-items:center; pointer-events:none;}
@@ -26,7 +26,7 @@
   #fUmwelt .fill{background:linear-gradient(90deg,#C4A15A,#A0522D,#7B3F2A);}
   #hint{position:fixed; top:74px; left:50%; transform:translateX(-50%); background:rgba(34,48,60,.85);
         color:#fff; font-weight:700; font-size:.85rem; padding:7px 16px; border-radius:20px; display:none; max-width:90%; text-align:center;}
-
+ 
   /* ---------- Touch ---------- */
   #touch{position:fixed; bottom:16px; left:0; right:0; display:none; justify-content:space-between; padding:0 18px; pointer-events:none;}
   .tbtn{pointer-events:auto; width:86px; height:86px; border-radius:50%; border:none; font-size:2rem; font-weight:900;
@@ -34,7 +34,7 @@
         touch-action:none; user-select:none; -webkit-user-select:none;}
   .tbtn:active{transform:scale(.94); background:#fff;}
   #btnTurbo{width:auto; height:60px; border-radius:30px; padding:0 22px; font-size:1rem; background:var(--sun); display:none;}
-
+ 
   /* ---------- Overlay-Screens ---------- */
   #overlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:16px;
            background:linear-gradient(180deg,#BDE3F0 0%,#DFF2E4 70%,#B9E3B4 100%); overflow-y:auto;}
@@ -55,7 +55,7 @@
   .btn.alt{background:var(--ink);}
   .btn.warn{background:var(--danger);}
   .btn.sun{background:var(--sun); color:var(--ink);}
-
+ 
   /* Level-Auswahl: die Zeitstraße */
   .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-top:18px; text-align:left;}
   .card{border-radius:18px; padding:14px; color:#fff; position:relative; min-height:132px; cursor:pointer;
@@ -68,130 +68,130 @@
   .card .stars{position:absolute; top:12px; right:12px; font-size:.95rem; letter-spacing:.05em;}
   .card.locked{filter:grayscale(.85); opacity:.55; cursor:not-allowed;}
   .card.locked::after{content:"🔒"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:2rem;}
-
+ 
   .starsBig{font-size:2.6rem; letter-spacing:.1em; margin:10px 0 4px;}
   .infoBox{background:#F2F7F3; border-radius:16px; padding:16px 18px; margin:14px 0 4px; text-align:left; line-height:1.55;}
   .infoBox b{color:var(--leaf);}
   .keys{font-size:.8rem; opacity:.75; margin-top:12px;}
   kbd{background:#EDF1F4; border-radius:6px; padding:2px 8px; font-family:inherit; font-weight:700; border:1px solid #D5DDE2;}
-
+ 
   @media (prefers-reduced-motion: reduce){ .btn, .card{transition:none;} }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-
+ 
 <div id="hud">
   <div class="bar" id="fDist"><label>🛣️ Strecke <span id="tDist">0 km</span></label><div class="track"><div class="fill" style="width:0%"></div></div></div>
   <div class="bar" id="fEnergy"><label><span id="lEnergy">⚡ Energie</span> <span id="tEnergy">100 %</span></label><div class="track"><div class="fill" style="width:100%"></div></div></div>
   <div class="bar" id="fUmwelt"><label>🌍 Umwelt <span id="tUmwelt">0 %</span></label><div class="track"><div class="fill" style="width:0%"></div></div></div>
 </div>
 <div id="hint"></div>
-
+ 
 <div id="touch">
   <button class="tbtn" id="btnBrake" aria-label="Bremsen">⏪</button>
   <button class="tbtn" id="btnTurbo">TURBO 🔥</button>
   <button class="tbtn" id="btnGas" aria-label="Gas geben">⏩</button>
 </div>
-
+ 
 <div id="overlay"></div>
-
+ 
 <script>
 "use strict";
 /* =========================================================
    WORLD CAR – Fahr in die Zukunft
    Ein Lernspiel über Autos & Nachhaltigkeit (1908–2070)
    ========================================================= */
-
+ 
 const cv = document.getElementById("c");
 const cx = cv.getContext("2d");
 let W = 0, H = 0, GROUND = 0;
 function resize(){ W = cv.width = innerWidth; H = cv.height = innerHeight; GROUND = H * 0.74; }
 addEventListener("resize", resize); resize();
-
+ 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
+ 
 /* ---------- Leveldaten ---------- */
 const LEVELS = [
-{ // 1
+{ // 1 – Tutorial: einfach durchkommen
   jahr:"1908", ort:"Berlin", antrieb:"Benzin", energyLabel:"⛽ Benzin",
-  dist:3, pxKm:2400, vmax:165, drain:2.0, idle:0.12, pollute:2.0,
-  obstacles:[{km:0.9},{km:1.7},{km:2.4}],
-  stars:[65,85],
+  dist:2, pxKm:1800, vmax:210, drain:0.7, idle:0, pollute:1.3,
+  obstacles:[{km:1.2}],
+  stars:[35,70],
   pal:{sky1:"#F0E3C0",sky2:"#D9C79A",ground:"#8A7550",road:"#6B5B45",far:"#8C7A57",mid:"#5C4B33"},
   cardCol:"#8A6F3F", carType:"oldtimer",
   info:"Berlin, 1908. Die ersten Autos fahren mit <b>Benzin</b>. Sie sind langsam, laut – und aus dem Auspuff kommt eine Menge Dreck. Achtung: Auf der Straße sind noch Pferdekutschen unterwegs!",
-  tipp:"Nimm den Fuß vom Gas und lass das Auto rollen. Nur beim Gasgeben entstehen Abgase!"
+  tipp:"Fahr einfach nach rechts und komm ans Ziel. Rollen statt Gasgeben spart Dreck!"
 },
-{ // 2
+{ // 2 – Diesel: schnell, aber dreckig
   jahr:"1985", ort:"Ruhrgebiet", antrieb:"Diesel", energyLabel:"⛽ Diesel",
-  dist:15, pxKm:700, vmax:300, drain:1.8, idle:0.1, pollute:2.4,
-  slowZones:[[4,5.5],[9,10.5]],
-  stars:[55,80],
+  dist:6, pxKm:500, vmax:340, drain:0.7, idle:0, pollute:1.8,
+  slowZones:[[3,3.8]],
+  stars:[45,78],
   pal:{sky1:"#C8C4BC",sky2:"#A8A49C",ground:"#7B7F72",road:"#55565C",far:"#6E7076",mid:"#4A4B52"},
   cardCol:"#5A5B63", carType:"diesel",
-  info:"Ruhrgebiet, 1985. <b>Diesel</b>-Motoren sind stark und schnell, aber sie stoßen viel Ruß aus. Die Luft in den Städten wird immer schlechter. Unterwegs bremsen dich Baustellen aus.",
-  tipp:"In Baustellen bringt Vollgas nichts – geh vom Gas und spare Abgase."
+  info:"Ruhrgebiet, 1985. <b>Diesel</b>-Motoren sind stark und schnell, aber sie stoßen viel Ruß aus. Die Luft in den Städten wird immer schlechter.",
+  tipp:"In der Baustelle bringt Vollgas nichts – geh vom Gas und spare Abgase."
 },
-{ // 3
+{ // 3 – E-Auto: eine Ladepause reicht
   jahr:"2026", ort:"Deutschland", antrieb:"Elektro", energyLabel:"🔋 Akku",
-  dist:40, pxKm:340, vmax:330, drain:5.0, idle:0.1, pollute:0,
-  stations:[14,27], chargeRate:30, stationWin:0.7,
-  stars:[10,50],
+  dist:18, pxKm:280, vmax:350, drain:3.2, idle:0, pollute:0,
+  stations:[10], chargeRate:55, stationWin:1.2,
+  stars:[12,45],
   pal:{sky1:"#BFE3F5",sky2:"#8FCBEA",ground:"#86BB6B",road:"#5A6069",far:"#9FB9CC",mid:"#6F93AD"},
   cardCol:"#3E8FBF", carType:"ev",
-  info:"Deutschland, 2026. <b>Elektroautos</b> fahren fast ohne Abgase. Aber der Akku ist schnell leer – und Ladesäulen sind noch selten. Plane deine Stopps gut!",
-  tipp:"Halte an den Ladesäulen an (bremsen!) und warte, bis der Akku wieder voll ist."
+  info:"Deutschland, 2026. <b>Elektroautos</b> fahren fast ohne Abgase. Aber der Akku ist schnell leer – und Ladesäulen sind noch selten. Halte einmal zum Laden an!",
+  tipp:"Bei etwa 10 km kommt eine Ladesäule. Anhalten (bremsen) und warten, bis der Akku voll ist."
 },
-{ // 4
+{ // 4 – Solar: Sonne nutzen
   jahr:"2040", ort:"Küstenstraße", antrieb:"Solar", energyLabel:"☀️ Solar-Akku",
-  dist:80, pxKm:180, vmax:340, drain:9, idle:0.1, pollute:0, regen:7, startEnergy:70,
-  shadows:[[18,26],[44,54],[62,68]],
-  stars:[10,50],
+  dist:30, pxKm:150, vmax:340, drain:5, idle:0, pollute:0, regen:8, startEnergy:80,
+  shadows:[[10,14],[22,26]],
+  stars:[10,40],
   pal:{sky1:"#FFE9A8",sky2:"#8ED4E4",ground:"#DFC287",road:"#3E4C66",far:"#2E9FB8",mid:"#48B7CE"},
   cardCol:"#E8A93C", carType:"solar",
-  info:"Küstenstraße, 2040. Dieses Auto lädt sich mit <b>Sonnenlicht</b> selbst auf! In Tunneln und Schattenzonen bekommt es aber keine neue Energie.",
-  tipp:"Tanke in der Sonne Energie auf Vorrat, bevor ein Tunnel kommt."
+  info:"Küstenstraße, 2040. Dieses Auto lädt sich mit <b>Sonnenlicht</b> selbst auf! In Tunneln bekommt es aber keine neue Energie.",
+  tipp:"Tanke in der Sonne Energie auf, bevor ein Tunnel kommt."
 },
-{ // 5
+{ // 5 – Wahl Wasserstoff/Druckluft
   jahr:"2055", ort:"Grüne Megacity", antrieb:"Wasserstoff / Druckluft", energyLabel:"🫧 Tank",
-  dist:120, pxKm:120, vmax:360, idle:0.1, pollute:0,
+  dist:40, pxKm:110, vmax:360, idle:0, pollute:0,
   choice:true, stationWin:1.5,
   variants:{
-    h2:  {label:"💧 Wasserstoff", drain:4.5, stations:[55,95],           chargeRate:40, energyLabel:"💧 Wasserstoff"},
-    air: {label:"💨 Druckluft",   drain:10,  stations:[20,40,60,80,100], chargeRate:60, energyLabel:"💨 Druckluft"}
+    h2:  {label:"💧 Wasserstoff", drain:3.5, stations:[22],       chargeRate:55, energyLabel:"💧 Wasserstoff"},
+    air: {label:"💨 Druckluft",   drain:7,   stations:[13,26], chargeRate:70, energyLabel:"💨 Druckluft"}
   },
-  stars:[10,50],
+  stars:[10,40],
   pal:{sky1:"#DFF2E4",sky2:"#A9DCC3",ground:"#7CBF7E",road:"#4E5A63",far:"#5FA98C",mid:"#3E8A6E"},
   cardCol:"#3FA66A", carType:"pod",
-  info:"Megacity, 2055. Wähle deinen Antrieb: <b>Wasserstoff</b> hat eine riesige Reichweite, aber nur wenige Tankstellen. <b>Druckluft</b> ist blitzschnell nachgefüllt, reicht aber nicht weit.",
+  info:"Megacity, 2055. Wähle deinen Antrieb: <b>Wasserstoff</b> hat eine große Reichweite, aber nur eine Tankstelle. <b>Druckluft</b> ist blitzschnell nachgefüllt, reicht aber nicht weit.",
   tipp:"Beide Antriebe sind sauber – aber sie fahren sich ganz unterschiedlich. Probiere beide aus!"
 },
-{ // 6
+{ // 6 – Netto-Null-Challenge
   jahr:"2070", ort:"Weltumrundung", antrieb:"Solar + Elektro", energyLabel:"☀️ Solar-Akku",
-  dist:200, pxKm:90, vmax:340, drain:6, idle:0.1, pollute:0, regen:6, startEnergy:90,
-  shadows:[[40,55],[110,125],[160,170]],
-  turbo:{speed:150, pollute:9},
+  dist:60, pxKm:80, vmax:340, drain:4, idle:0, pollute:0, regen:7, startEnergy:100,
+  shadows:[[20,28],[42,50]],
+  turbo:{speed:150, pollute:8},
   stars:[12,30],
   pal:{sky1:"#CFE6FA",sky2:"#A7D6C9",ground:"#8CC98A",road:"#46525C",far:"#8FB4D9",mid:"#5E9E82"},
   cardCol:"#7B5FD9", carType:"future",
   info:"Weltumrundung, 2070. Dein <b>Solar-Elektro-Auto</b> fährt komplett sauber. Nur der Notfall-Turbo verbrennt Treibstoff und verschmutzt die Luft. <b>Netto-Null-Challenge:</b> Komm an, ohne die Umwelt-Leiste zu füllen!",
   tipp:"Turbo mit <b>Shift</b> (oder Turbo-Button) – aber sparsam! Jede Sekunde Turbo macht die Luft schmutziger."
 }];
-
+ 
 /* ---------- Fortschritt (nur im Speicher, kein Login) ---------- */
 const progress = { unlocked:1, stars:[0,0,0,0,0,0] };
-
+ 
 /* ---------- Spielzustand ---------- */
 let screen = "menu";        // menu | select | info | play | result | fail
 let game = null;
 let currentIdx = 0;
 let chosenVariant = null;
-
+ 
 const keys = {};
 addEventListener("keydown", e => { keys[e.key] = true; if(["ArrowLeft","ArrowRight"," "].includes(e.key)) e.preventDefault(); });
 addEventListener("keyup",   e => { keys[e.key] = false; });
-
+ 
 /* Touch-Buttons */
 const touchWrap = document.getElementById("touch");
 const isTouch = matchMedia("(pointer: coarse)").matches;
@@ -208,7 +208,7 @@ function bindHold(id, set){
 bindHold("btnGas",   v=>tGas=v);
 bindHold("btnBrake", v=>tBrake=v);
 bindHold("btnTurbo", v=>tTurbo=v);
-
+ 
 /* ---------- Hilfen ---------- */
 const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp  = (a,b,t)=>a+(b-a)*t;
@@ -216,11 +216,11 @@ function hexToRgb(h){ const n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&25
 function mixCol(h1,h2,t){ const a=hexToRgb(h1),b=hexToRgb(h2);
   return `rgb(${Math.round(lerp(a[0],b[0],t))},${Math.round(lerp(a[1],b[1],t))},${Math.round(lerp(a[2],b[2],t))})`; }
 function fmtKm(v){ return (v>=10? Math.round(v) : Math.round(v*10)/10) + " km"; }
-
+ 
 /* Hügelprofil (Welt-Koordinaten) */
 function gy(wx){ return GROUND + 16*Math.sin(wx*0.003) + 9*Math.sin(wx*0.0011+2); }
 function slopeAt(wx){ return (gy(wx+8)-gy(wx-8))/16; }
-
+ 
 /* ---------- Level starten ---------- */
 function startLevel(idx, variantKey){
   const base = LEVELS[idx];
@@ -246,22 +246,22 @@ function startLevel(idx, variantKey){
   hideOverlay();
   screen = "play";
 }
-
+ 
 /* ---------- Update ---------- */
 function inZone(zones, km){ return (zones||[]).some(z => km>=z[0] && km<=z[1]); }
-
+ 
 function update(dt){
   const g = game, L = g.L;
   g.time += dt;
   const carX = W*0.24;
   const carWX = g.worldX + carX;
   const km = g.worldX / L.pxKm;
-
+ 
   let th = (keys["ArrowRight"]||keys["d"]||keys["D"]||tGas) ? 1 : 0;
   let br = (keys["ArrowLeft"]||keys["a"]||keys["A"]||tBrake) ? 1 : 0;
   let turbo = L.turbo && (keys["Shift"]||tTurbo);
   if(g.energy<=0){ th = 0; turbo = false; }
-
+ 
   /* Physik */
   const slope = slopeAt(carWX);
   let vmax = L.vmax + (turbo? L.turbo.speed:0);
@@ -270,7 +270,7 @@ function update(dt){
   const accel = L.vmax*0.62;
   g.speed += (accel*th - 480*br - g.speed*drag + slope*420 + (turbo? 260:0))*dt;
   g.speed = clamp(g.speed, 0, vmax);
-
+ 
   /* Kutschen (Level 1): langsame Hindernisse */
   if(L.obstacles){
     L.obstacles.forEach((o,i)=>{
@@ -283,9 +283,13 @@ function update(dt){
       }
     });
   }
-
+ 
   g.worldX += g.speed*dt;
-
+ 
+  /* Ziel erreicht? Wird VOR den Fail-Checks geprüft */
+  const kmNow = g.worldX / L.pxKm;
+  if(kmNow >= L.dist && !g.finished){ g.finished = true; finish(); return; }
+ 
   /* Energie */
   let drain = L.idle + L.drain*th;
   g.energy -= drain*dt;
@@ -305,13 +309,13 @@ function update(dt){
   }
   g.energy = clamp(g.energy, 0, 100);
   if(g.energy<=0 && g.speed<6){ fail("energie"); return; }
-
+ 
   /* Umwelt */
   let pol = L.pollute*th;
   if(turbo) pol += L.turbo.pollute;
   g.pollution += pol*dt;
   if(g.pollution>=100){ fail("umwelt"); return; }
-
+ 
   /* Abgas-Partikel */
   if(pol > 0.4 && g.speed > 5){
     const n = reduceMotion? 1 : Math.ceil(pol);
@@ -322,25 +326,22 @@ function update(dt){
     }
   }
   g.smoke = g.smoke.filter(p=>{ p.life-=dt; p.wx+=p.vx*dt*0.4; p.y+=p.vy*dt; p.r+=6*dt; return p.life>0; });
-
+ 
   /* Schatten-Warnung */
   if(L.shadows && !sunny && L.regen) showHint("🌑 Schattenzone – keine Solar-Energie!", 0.4);
-
+ 
   g.hintTimer -= dt;
   if(g.hintTimer<=0) document.getElementById("hint").style.display="none";
-
-  /* Ziel */
-  if(km >= L.dist && !g.finished){ g.finished = true; finish(); }
-
+ 
   updateHUD(km);
 }
-
+ 
 function showHint(text, t=1.5){
   const el = document.getElementById("hint");
   el.textContent = text; el.style.display="block";
   game.hintTimer = t;
 }
-
+ 
 function updateHUD(km){
   const L = game.L;
   const set = (id, frac, txt)=>{
@@ -352,25 +353,25 @@ function updateHUD(km){
   set("fEnergy", game.energy/100,  Math.round(game.energy)+" %");
   set("fUmwelt", game.pollution/100, Math.round(game.pollution)+" %");
 }
-
+ 
 /* ---------- Zeichnen ---------- */
 function draw(){
   const g = game, L = g.L;
   const polFrac = g.pollution/100;
   const km = g.worldX/L.pxKm;
   const inShadow = L.shadows && inZone(L.shadows, km);
-
+ 
   /* Himmel: wird mit Verschmutzung grauer */
   const sky1 = mixCol(L.pal.sky1, "#9A8F7D", polFrac*0.65);
   const sky2 = mixCol(L.pal.sky2, "#7E766A", polFrac*0.65);
   const grad = cx.createLinearGradient(0,0,0,GROUND);
   grad.addColorStop(0, sky1); grad.addColorStop(1, sky2);
   cx.fillStyle = grad; cx.fillRect(0,0,W,H);
-
+ 
   /* Sonne */
   cx.beginPath(); cx.arc(W*0.8, H*0.18, 34, 0, 7);
   cx.fillStyle = mixCol("#FFD75E", "#B8A98C", polFrac*0.7); cx.fill();
-
+ 
   drawFarLayer(L);
   drawMidLayer(L);
   drawGroundAndRoad(L);
@@ -379,10 +380,10 @@ function draw(){
   drawObstacles(L);
   drawCar(L);
   drawSmoke();
-
+ 
   if(inShadow){ cx.fillStyle="rgba(20,25,40,.28)"; cx.fillRect(0,0,W,H); }
 }
-
+ 
 /* ferne Silhouetten (Parallaxe 0.25) */
 function drawFarLayer(L){
   const off = game.worldX*0.25, step = 230;
@@ -402,7 +403,7 @@ function drawFarLayer(L){
   }
   cx.globalAlpha = 1;
 }
-
+ 
 /* mittlere Ebene mit epochen-typischen Requisiten (Parallaxe 0.5) */
 function drawMidLayer(L){
   const off = game.worldX*0.5, step = 320;
@@ -467,7 +468,7 @@ function midProp(L, x, seed){
   }
   cx.restore();
 }
-
+ 
 function drawGroundAndRoad(L){
   /* Boden */
   cx.fillStyle = L.pal.ground;
@@ -486,7 +487,7 @@ function drawGroundAndRoad(L){
   for(let x=-10;x<=W+10;x+=14){ const y=gy(game.worldX+x); x<0? cx.moveTo(x,y): cx.lineTo(x,y); }
   cx.stroke(); cx.setLineDash([]);
 }
-
+ 
 function drawZones(L, km){
   /* Baustellen */
   (L.slowZones||[]).forEach(z=>{
@@ -513,7 +514,7 @@ function drawZones(L, km){
     cx.closePath(); cx.globalAlpha=.9; cx.fill(); cx.globalAlpha=1;
   });
 }
-
+ 
 function drawStations(L){
   (L.stations||[]).forEach(s=>{
     const x = s*L.pxKm - game.worldX;
@@ -528,7 +529,7 @@ function drawStations(L){
     cx.fillRect(x-40, y-6, 80, 10);
   });
 }
-
+ 
 function drawObstacles(L){
   (L.obstacles||[]).forEach((o,i)=>{
     const wx = o.km*L.pxKm + game.obstacleOff[i];
@@ -549,7 +550,7 @@ function drawObstacles(L){
     cx.restore();
   });
 }
-
+ 
 function drawCar(L){
   const carX = W*0.24, wx = game.worldX + carX;
   const y = gy(wx), ang = Math.atan(slopeAt(wx));
@@ -607,7 +608,7 @@ function drawCar(L){
   }
   cx.restore();
 }
-
+ 
 function drawSmoke(){
   game.smoke.forEach(p=>{
     const x = p.wx - game.worldX;
@@ -617,7 +618,7 @@ function drawSmoke(){
   });
   cx.globalAlpha = 1;
 }
-
+ 
 /* ---------- Levelende ---------- */
 function starsFor(L, pollution){
   if(pollution <= L.stars[0]) return 3;
@@ -635,7 +636,7 @@ function fail(reason){
   screen = "fail";
   showFail(reason);
 }
-
+ 
 /* ---------- Overlay-Screens ---------- */
 const overlay = document.getElementById("overlay");
 function hideOverlay(){ overlay.style.display="none"; }
@@ -656,7 +657,7 @@ overlay.addEventListener("click", e=>{
   else if(act==="retry") startLevel(currentIdx, chosenVariant);
   else if(act==="next"){ const n=currentIdx+1; n<LEVELS.length? showInfo(n) : showMenu(true); }
 });
-
+ 
 function showMenu(victory){
   screen="menu";
   show(`
@@ -670,7 +671,7 @@ function showMenu(victory){
     <p class="keys">Steuerung: <kbd>→</kbd>/<kbd>D</kbd> Gas &nbsp; <kbd>←</kbd>/<kbd>A</kbd> Bremse &nbsp; (auf Handy &amp; Tablet: Bildschirm-Buttons)</p>
   </div>`);
 }
-
+ 
 function showSelect(){
   screen="select";
   const cards = LEVELS.map((L,i)=>{
@@ -692,7 +693,7 @@ function showSelect(){
     <button class="btn alt" data-action="menu" style="margin-top:18px">Zurück</button>
   </div>`);
 }
-
+ 
 function showInfo(i){
   screen="info"; currentIdx=i;
   const L = LEVELS[i];
@@ -713,7 +714,7 @@ function showInfo(i){
     <button class="btn alt" data-action="select">Level-Auswahl</button>
   </div>`);
 }
-
+ 
 function showResult(s){
   const L = LEVELS[currentIdx];
   const last = currentIdx === LEVELS.length-1;
@@ -734,7 +735,7 @@ function showResult(s){
     <button class="btn alt" data-action="select">Level-Auswahl</button>
   </div>`);
 }
-
+ 
 function showFail(reason){
   const msg = reason==="energie"
     ? "🔋 <b>Energie leer!</b> Ohne Treibstoff oder Strom geht nichts mehr. Nutze Stationen und Sonne – oder fahre sparsamer."
@@ -748,7 +749,7 @@ function showFail(reason){
     <button class="btn alt" data-action="select">Zurück zur Level-Auswahl</button>
   </div>`, true);
 }
-
+ 
 /* ---------- Hauptschleife ---------- */
 let last = performance.now();
 function loop(now){
