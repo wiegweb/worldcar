@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>KÖLSCH QUEST 3D</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0f1220;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      touch-action: none;
+    }
+    #game {
+      position: fixed;
+      inset: 0;
+    }
+    #hud {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .panel {
+      background: rgba(8, 12, 24, 0.72);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 14px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, rgba(255,183,0,0.15), rgba(0,0,0,0.72));
+      z-index: 30;
+    }
+    #card {
+      width: min(92vw, 500px);
+      background: rgba(13,17,30,0.9);
+      color: white;
+      padding: 24px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 22px 60px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 6vw, 44px);
+      line-height: 1.05;
+    }
+    .sub {
+      opacity: 0.9;
+      margin-bottom: 16px;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    .pillrow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 16px 0 22px;
+    }
+    .pill {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 16px 24px;
+      font-size: 18px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffcb2f, #ff8a00);
+      color: #1b1606;
+      box-shadow: 0 10px 30px rgba(255,138,0,0.3);
+    }
+    #controls {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      z-index: 25;
+      pointer-events: none;
+    }
+    .cluster {
+      display: flex;
+      gap: 12px;
+      pointer-events: auto;
+    }
+    .touchbtn {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: rgba(16,20,32,0.72);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 800;
+      user-select: none;
+      -webkit-user-select: none;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    }
+    #message {
+      position: fixed;
+      left: 50%;
+      top: 90px;
+      transform: translateX(-50%);
+      color: white;
+      background: rgba(0,0,0,0.55);
+      padding: 10px 14px;
+      border-radius: 999px;
+      z-index: 26;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity .25s ease;
+      pointer-events: none;
+    }
+    .hidden { display: none !important; }
+    @media (min-width: 900px) {
+      .touchbtn { width: 82px; height: 82px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+
+  <div id="hud">
+    <div class="panel" id="score">🍺 Kölsch: 0</div>
+    <div class="panel" id="distance">🏁 Meter: 0</div>
+    <div class="panel" id="hearts">❤️❤️❤️</div>
+  </div>
+
+  <div id="message"></div>
+
+  <div id="overlay">
+    <div id="card">
+      <h1>KÖLSCH QUEST 3D</h1>
+      <div class="sub">Renne durch Köln, sammle Kölsch an Büdchen, dodge Karnevalschaos und halte den dicken bärtigen Helden auf den Beinen.</div>
+      <div class="pillrow">
+        <div class="pill">🏃 3D Runner</div>
+        <div class="pill">🍺 Büdchen & Kölsch</div>
+        <div class="pill">🎭 Karneval-Vibes</div>
+        <div class="pill">📱 iPhone Touch-Steuerung</div>
+      </div>
+      <div class="sub"><b>Steuerung:</b> Links/Rechts wechseln • Hoch/Space springen • Tippe auf die Buttons unten.</div>
+      <button id="startBtn">LOSS JEHT'S!</button>
+    </div>
+  </div>
+
+  <div id="controls" class="hidden">
+    <div class="cluster">
+      <div class="touchbtn" id="leftBtn">◀</div>
+      <div class="touchbtn" id="rightBtn">▶</div>
+    </div>
+    <div class="cluster">
+      <div class="touchbtn" id="jumpBtn">⬆</div>
+    </div>
+  </div>
+
+  <script type="module">
+    let THREE;
+    try {
+      THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+    } catch (firstError) {
+      try {
+        THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+      } catch (secondError) {
+        const desc = document.querySelector('#card .sub');
+        desc.textContent = 'Die 3D-Grafik konnte nicht geladen werden. Bitte öffne die Seite online in Safari und lade sie erneut.';
+        const button = document.getElementById('startBtn');
+        button.disabled = true;
+        button.textContent = '3D-MODUL NICHT GELADEN';
+        button.style.opacity = '.55';
+        throw secondError;
+      }
+    }
+
+    const mount = document.getElementById('game');
+    const overlay = document.getElementById('overlay');
+    const controlsEl = document.getElementById('controls');
+    const scoreEl = document.getElementById('score');
+    const heartsEl = document.getElementById('hearts');
+    const distanceEl = document.getElementById('distance');
+    const messageEl = document.getElementById('message');
+    const startBtn = document.getElementById('startBtn');
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.7));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    mount.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x91bfe8, 35, 95);
+
+    const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(0, 6.5, 11);
+    camera.lookAt(0, 1.2, -10);
+
+    const sky = new THREE.Mesh(
+      new THREE.SphereGeometry(120, 32, 32),
+      new THREE.MeshBasicMaterial({ color: 0x9fd4ff, side: THREE.BackSide })
+    );
+    scene.add(sky);
+
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x5e6b4d, 1.3);
+    scene.add(hemi);
+
+    const dir = new THREE.DirectionalLight(0xfff1c8, 1.35);
+    dir.position.set(8, 18, 10);
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(1024, 1024);
+    dir.shadow.camera.near = 1;
+    dir.shadow.camera.far = 60;
+    dir.shadow.camera.left = -25;
+    dir.shadow.camera.right = 25;
+    dir.shadow.camera.top = 25;
+    dir.shadow.camera.bottom = -25;
+    scene.add(dir);
+
+    const world = new THREE.Group();
+    scene.add(world);
+
+    const laneX = [-3.2, 0, 3.2];
+    const groundSegments = [];
+    const items = [];
+    const pickups = [];
+    const decorations = [];
+
+    const game = {
+      running: false,
+      speed: 20,
+      score: 0,
+      lives: 3,
+      distance: 0,
+      targetLane: 1,
+      currentLane: 1,
+      vy: 0,
+      y: 0,
+      onGround: true,
+      invuln: 0,
+      spawnZ: -50,
+      messageT: 0,
+      startedOnce: false,
+    };
+
+    const road = new THREE.Mesh(
+      new THREE.BoxGeometry(10, 0.6, 220),
+      new THREE.MeshStandardMaterial({ color: 0x40464f, roughness: 0.95 })
+    );
+    road.position.set(0, -0.3, -40);
+    road.receiveShadow = true;
+    world.add(road);
+
+    for (let i = 0; i < 20; i++) {
+      const seg = new THREE.Mesh(
+        new THREE.BoxGeometry(0.18, 0.03, 3),
+        new THREE.MeshStandardMaterial({ color: 0xf6efe3, emissive: 0x1a1304 })
+      );
+      seg.position.set(0, 0.01, -i * 6);
+      seg.receiveShadow = true;
+      world.add(seg);
+      groundSegments.push(seg);
+    }
+
+    const pavementMat = new THREE.MeshStandardMaterial({ color: 0xb5b5b5, roughness: 1 });
+    const grassMat = new THREE.MeshStandardMaterial({ color: 0x5e8a42, roughness: 1 });
+    const buildingColors = [0xe6dac8, 0xd4c3b5, 0xf1e4d7, 0xcab39d, 0xd7ccb9];
+
+    function makeBuilding(x, z) {
+      const g = new THREE.Group();
+      const w = 4 + Math.random() * 3;
+      const h = 6 + Math.random() * 10;
+      const d = 4 + Math.random() * 4;
+      const color = buildingColors[Math.floor(Math.random() * buildingColors.length)];
+      const base = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.9 })
+      );
+      base.position.y = h / 2;
+      base.castShadow = true;
+      base.receiveShadow = true;
+      g.add(base);
+      for (let i = 0; i < Math.floor(h / 2); i++) {
+        for (let j = -1; j <= 1; j++) {
+          if (Math.random() < 0.8) {
+            const win = new THREE.Mesh(
+              new THREE.BoxGeometry(0.55, 0.75, 0.06),
+              new THREE.MeshStandardMaterial({ color: 0x9cc9ff, emissive: 0x24445c, emissiveIntensity: 0.35 })
+            );
+            win.position.set(j * 1.15, 1.2 + i * 1.7, d/2 + 0.04);
+            g.add(win);
+          }
+        }
+      }
+      g.position.set(x, 0, z);
+      world.add(g);
+      decorations.push(g);
+    }
+
+    for (let i = 0; i < 24; i++) {
+      const z = -i * 10 - 5;
+      makeBuilding(-10.5 - Math.random()*5, z);
+      makeBuilding(10.5 + Math.random()*5, z-3);
+
+      const grassL = new THREE.Mesh(new THREE.BoxGeometry(8, .25, 10), grassMat);
+      grassL.position.set(-9, -0.05, z);
+      grassL.receiveShadow = true;
+      world.add(grassL); decorations.push(grassL);
+
+      const grassR = new THREE.Mesh(new THREE.BoxGeometry(8, .25, 10), grassMat);
+      grassR.position.set(9, -0.05, z);
+      grassR.receiveShadow = true;
+      world.add(grassR); decorations.push(grassR);
+
+      const paveL = new THREE.Mesh(new THREE.BoxGeometry(4, .18, 10), pavementMat);
+      paveL.position.set(-6.7, -0.1, z);
+      paveL.receiveShadow = true;
+      world.add(paveL); decorations.push(paveL);
+
+      const paveR = new THREE.Mesh(new THREE.BoxGeometry(4, .18, 10), pavementMat);
+      paveR.position.set(6.7, -0.1, z);
+      paveR.receiveShadow = true;
+      world.add(paveR); decorations.push(paveR);
+    }
+
+    function makeCathedral() {
+      const g = new THREE.Group();
+      const stone = new THREE.MeshStandardMaterial({ color: 0x5f676d, roughness: 0.95 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(8, 12, 5), stone);
+      body.position.y = 6;
+      body.castShadow = true; body.receiveShadow = true;
+      g.add(body);
+      for (const sx of [-2.6, 2.6]) {
+        const tower = new THREE.Mesh(new THREE.BoxGeometry(2.2, 18, 2.2), stone);
+        tower.position.set(sx, 9, 0.8);
+        tower.castShadow = true; tower.receiveShadow = true;
+        g.add(tower);
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(1.7, 4.5, 4), stone);
+        roof.position.set(sx, 20.2, 0.8);
+        roof.rotation.y = Math.PI/4;
+        roof.castShadow = true;
+        g.add(roof);
+      }
+      g.position.set(-22, 0, -42);
+      world.add(g);
+      decorations.push(g);
+    }
+    makeCathedral();
+
+    function createPlayer() {
+      const g = new THREE.Group();
+
+      const skin = new THREE.MeshStandardMaterial({ color: 0xf0c7a4, roughness: 0.95 });
+      const shirt = new THREE.MeshStandardMaterial({ color: 0xd93d2f, roughness: 0.9 });
+      const pants = new THREE.MeshStandardMaterial({ color: 0x243043, roughness: 0.95 });
+      const beardMat = new THREE.MeshStandardMaterial({ color: 0x5a371b, roughness: 1 });
+      const shoe = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 1 });
+
+      const belly = new THREE.Mesh(new THREE.SphereGeometry(1.05, 22, 18), shirt);
+      belly.scale.set(1.08, 1.12, 0.95);
+      belly.position.y = 2.05;
+      belly.castShadow = true;
+      g.add(belly);
+
+      const chest = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.7, 1.05), shirt);
+      chest.position.y = 2.6;
+      chest.castShadow = true;
+      g.add(chest);
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.72, 22, 18), skin);
+      head.position.y = 4.02;
+      head.castShadow = true;
+      g.add(head);
+
+      const beard = new THREE.Mesh(new THREE.SphereGeometry(0.48, 18, 14), beardMat);
+      beard.scale.set(1.2, 1.0, 0.95);
+      beard.position.set(0, 3.72, 0.35);
+      beard.castShadow = true;
+      g.add(beard);
+
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.2, 1.6), new THREE.MeshStandardMaterial({ color: 0xf3c220, roughness: 0.9 }));
+      cap.position.y = 4.58;
+      cap.castShadow = true;
+      g.add(cap);
+
+      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.52, 1.8, 0.52), pants);
+      const rightLeg = leftLeg.clone();
+      leftLeg.position.set(-0.38, 0.95, 0); rightLeg.position.set(0.38, 0.95, 0);
+      leftLeg.castShadow = rightLeg.castShadow = true;
+      g.add(leftLeg, rightLeg);
+
+      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.7, 0.42), skin);
+      const rightArm = leftArm.clone();
+      leftArm.position.set(-1.08, 2.55, 0); rightArm.position.set(1.08, 2.55, 0);
+      leftArm.castShadow = rightArm.castShadow = true;
+      g.add(leftArm, rightArm);
+
+      const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.28, 0.86), shoe);
+      const rightShoe = leftShoe.clone();
+      leftShoe.position.set(-0.38, 0.1, 0.14); rightShoe.position.set(0.38, 0.1, 0.14);
+      g.add(leftShoe, rightShoe);
+
+      g.userData = { leftLeg, rightLeg, leftArm, rightArm, head, belly };
+      g.position.set(0, 0, 4);
+      world.add(g);
+      return g;
+    }
+
+    const player = createPlayer();
+
+    function makeBeer() {
+      const g = new THREE.Group();
+      const glass = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.25, 0.2, 0.8, 14),
+        new THREE.MeshStandardMaterial({ color: 0xffc53d, transparent: true, opacity: 0.95, emissive: 0x5a2a00, emissiveIntensity: 0.2 })
+      );
+      glass.castShadow = true;
+      g.add(glass);
+      const foam = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.25, 0.18, 14), new THREE.MeshStandardMaterial({ color: 0xfdf7eb }));
+      foam.position.y = 0.42;
+      g.add(foam);
+      g.userData.type = 'beer';
+      return g;
+    }
+
+    function makeObstacle(kind='crate') {
+      const g = new THREE.Group();
+      if (kind === 'crate') {
+        const box = new THREE.Mesh(
+          new THREE.BoxGeometry(1.3, 1.1, 1.2),
+          new THREE.MeshStandardMaterial({ color: 0x7a4d27, roughness: 1 })
+        );
+        box.castShadow = true; box.receiveShadow = true;
+        g.add(box);
+        const strap = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.12, 1.28), new THREE.MeshStandardMaterial({ color: 0x2a1708 }));
+        strap.position.y = 0.1;
+        g.add(strap);
+      } else if (kind === 'cone') {
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(0.65, 1.4, 10), new THREE.MeshStandardMaterial({ color: 0xff7a00, roughness: 0.95 }));
+        cone.position.y = 0.7;
+        cone.castShadow = true;
+        g.add(cone);
+      } else {
+        const mask = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.25, 10, 18), new THREE.MeshStandardMaterial({ color: 0xc42778, roughness: 0.9 }));
+        mask.rotation.x = Math.PI / 2;
+        mask.position.y = 0.8;
+        mask.castShadow = true;
+        g.add(mask);
+      }
+      g.userData.type = 'obstacle';
+      return g;
+    }
+
+    function makeKiosk() {
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.1, 2.2), new THREE.MeshStandardMaterial({ color: 0xf1d5a3, roughness: 0.95 }));
+      body.position.y = 1.05;
+      body.castShadow = true; body.receiveShadow = true;
+      g.add(body);
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.28, 2.55), new THREE.MeshStandardMaterial({ color: 0x2b8b52, roughness: 0.9 }));
+      roof.position.y = 2.25;
+      roof.castShadow = true;
+      g.add(roof);
+      const sign = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.46, 0.14), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x203040, emissiveIntensity: 0.2 }));
+      sign.position.set(0, 1.6, 1.15);
+      g.add(sign);
+      const awning = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.18, 0.85), new THREE.MeshStandardMaterial({ color: 0xd52e2e }));
+      awning.position.set(0, 1.25, 1.5);
+      g.add(awning);
+      g.userData.type = 'kiosk';
+      return g;
+    }
+
+    function placeObject(obj, lane, z) {
+      obj.position.set(laneX[lane], 0, z);
+      obj.userData.lane = lane;
+      world.add(obj);
+      return obj;
+    }
+
+    function showMessage(msg) {
+      messageEl.textContent = msg;
+      messageEl.style.opacity = '1';
+      game.messageT = 1.2;
+    }
+
+    function spawnChunk() {
+      const startZ = game.spawnZ;
+      const count = 7;
+      for (let i = 0; i < count; i++) {
+        const z = startZ - i * 8;
+        const r = Math.random();
+        if (r < 0.40) {
+          const lane = Math.floor(Math.random() * 3);
+          const beer = placeObject(makeBeer(), lane, z);
+          beer.position.y = 1.1 + Math.random() * 0.4;
+          pickups.push(beer);
+        } else if (r < 0.68) {
+          const lane = Math.floor(Math.random() * 3);
+          const kind = Math.random() < 0.34 ? 'cone' : Math.random() < 0.5 ? 'mask' : 'crate';
+          const obstacle = placeObject(makeObstacle(kind), lane, z);
+          items.push(obstacle);
+        } else if (r < 0.82) {
+          const lane = Math.floor(Math.random() * 3);
+          const kiosk = placeObject(makeKiosk(), lane, z);
+          items.push(kiosk);
+        }
+      }
+      game.spawnZ -= count * 8;
+    }
+
+    function resetRun() {
+      [...items, ...pickups].forEach(o => world.remove(o));
+      items.length = 0;
+      pickups.length = 0;
+      game.speed = 20;
+      game.score = 0;
+      game.lives = 3;
+      game.distance = 0;
+      game.targetLane = 1;
+      game.currentLane = 1;
+      game.vy = 0;
+      game.y = 0;
+      game.onGround = true;
+      game.invuln = 0;
+      game.spawnZ = -50;
+      player.position.set(0, 0, 4);
+      player.rotation.set(0,0,0);
+      spawnChunk(); spawnChunk(); spawnChunk();
+      updateHud();
+    }
+
+    function updateHud() {
+      scoreEl.textContent = `🍺 Kölsch: ${game.score}`;
+      heartsEl.textContent = '❤️'.repeat(game.lives) + '🖤'.repeat(Math.max(0, 3-game.lives));
+      distanceEl.textContent = `🏁 Meter: ${Math.floor(game.distance)}`;
+    }
+
+    function moveLane(dir) {
+      if (!game.running) return;
+      game.targetLane = Math.max(0, Math.min(2, game.targetLane + dir));
+    }
+
+    function jump() {
+      if (!game.running) return;
+      if (game.onGround) {
+        game.vy = 12.5;
+        game.onGround = false;
+      }
+    }
+
+    function startGame() {
+      resetRun();
+      overlay.classList.add('hidden');
+      controlsEl.classList.remove('hidden');
+      game.running = true;
+      game.startedOnce = true;
+      showMessage('Ab ans Büdche!');
+    }
+
+    function gameOver() {
+      game.running = false;
+      controlsEl.classList.add('hidden');
+      overlay.classList.remove('hidden');
+      document.querySelector('#card .sub').innerHTML = `Du hast <b>${game.score} Kölsch</b> gesammelt und bist <b>${Math.floor(game.distance)} Meter</b> weit gekommen.<br><br>Noch eine Runde?`;
+      startBtn.textContent = 'NOCHMAL!';
+    }
+
+    function hitObstacle() {
+      if (game.invuln > 0) return;
+      game.lives -= 1;
+      game.invuln = 1.1;
+      showMessage('Aua! Bierkisten-Chaos!');
+      updateHud();
+      if (game.lives <= 0) gameOver();
+    }
+
+    function collectBeer(obj) {
+      world.remove(obj);
+      const i = pickups.indexOf(obj);
+      if (i >= 0) pickups.splice(i, 1);
+      game.score += 1;
+      showMessage('Kölsch eingesackt!');
+      updateHud();
+    }
+
+    function visitKiosk(obj) {
+      world.remove(obj);
+      const i = items.indexOf(obj);
+      if (i >= 0) items.splice(i, 1);
+      game.score += 3;
+      game.speed = Math.min(31, game.speed + 0.7);
+      showMessage('Büdchen-Bonus +3!');
+      updateHud();
+    }
+
+    function updatePlayerAnim(t) {
+      const u = player.userData;
+      const run = game.running ? Math.sin(t * 12) : 0;
+      u.leftLeg.rotation.x = run * 0.9;
+      u.rightLeg.rotation.x = -run * 0.9;
+      u.leftArm.rotation.x = -run * 0.65;
+      u.rightArm.rotation.x = run * 0.65;
+      u.belly.position.y = 2.05 + Math.abs(Math.sin(t * 12)) * 0.05;
+      u.head.rotation.z = Math.sin(t * 5) * 0.04;
+      if (game.invuln > 0) {
+        const blink = Math.floor(t * 18) % 2 === 0;
+        player.visible = blink;
+      } else {
+        player.visible = true;
+      }
+    }
+
+    function updateWorld(dt) {
+      const moveZ = game.speed * dt;
+      game.distance += moveZ * 1.35;
+      game.speed = Math.min(32, game.speed + dt * 0.18);
+
+      game.currentLane += (game.targetLane - game.currentLane) * Math.min(1, dt * 10);
+      player.position.x = THREE.MathUtils.lerp(player.position.x, laneX[game.currentLane], Math.min(1, dt * 12));
+
+      game.vy -= 28 * dt;
+      game.y += game.vy * dt;
+      if (game.y <= 0) {
+        game.y = 0;
+        game.vy = 0;
+        game.onGround = true;
+      }
+      player.position.y = game.y;
+
+      camera.position.x += (player.position.x * 0.35 - camera.position.x) * Math.min(1, dt * 3);
+      camera.lookAt(player.position.x * 0.2, 1.8 + game.y * 0.12, -12);
+
+      for (const seg of groundSegments) {
+        seg.position.z += moveZ;
+        if (seg.position.z > 10) seg.position.z -= 120;
+      }
+
+      for (const deco of decorations) {
+        deco.position.z += moveZ;
+        if (deco.position.z > 24) deco.position.z -= 240;
+      }
+
+      function handleArr(arr, type) {
+        for (let i = arr.length - 1; i >= 0; i--) {
+          const obj = arr[i];
+          obj.position.z += moveZ;
+          obj.rotation.y += dt * 0.8 * (type === 'pickup' ? 1 : 0.1);
+          if (obj.position.z > 12) {
+            world.remove(obj);
+            arr.splice(i, 1);
+            continue;
+          }
+          const sameLane = Math.abs(obj.position.x - player.position.x) < 1.35;
+          const nearZ = obj.position.z > 2.6 && obj.position.z < 5.5;
+          if (sameLane && nearZ) {
+            if (type === 'pickup' && player.position.y < 2.2) collectBeer(obj);
+            if (type === 'item') {
+              if (obj.userData.type === 'obstacle' && player.position.y < 1.05) {
+                hitObstacle();
+              } else if (obj.userData.type === 'kiosk' && player.position.y < 1.6) {
+                visitKiosk(obj);
+              }
+            }
+          }
+        }
+      }
+
+      handleArr(pickups, 'pickup');
+      handleArr(items, 'item');
+
+      if (items.length + pickups.length < 14) spawnChunk();
+      if (game.invuln > 0) game.invuln -= dt;
+      if (game.messageT > 0) {
+        game.messageT -= dt;
+        if (game.messageT <= 0) messageEl.style.opacity = '0';
+      }
+      updateHud();
+    }
+
+    const keys = {};
+    window.addEventListener('keydown', e => {
+      if (e.code === 'ArrowLeft') moveLane(-1);
+      if (e.code === 'ArrowRight') moveLane(1);
+      if (e.code === 'ArrowUp' || e.code === 'Space') jump();
+      if (!game.running && (e.code === 'Space' || e.code === 'Enter')) startGame();
+      keys[e.code] = true;
+    });
+    window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+    function bindTouch(id, fn) {
+      const el = document.getElementById(id);
+      const handler = (e) => { e.preventDefault(); if (!game.running) startGame(); fn(); };
+      el.addEventListener('pointerdown', handler, { passive: false });
+    }
+    bindTouch('leftBtn', () => moveLane(-1));
+    bindTouch('rightBtn', () => moveLane(1));
+    bindTouch('jumpBtn', jump);
+
+    startBtn.addEventListener('click', startGame);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    resetRun();
+    let last = performance.now();
+
+    function loop(now) {
+      const dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      if (game.running) updateWorld(dt);
+      updatePlayerAnim(now / 1000);
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
