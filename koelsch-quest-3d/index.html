@@ -646,8 +646,10 @@
       game.distance += moveZ * 1.35;
       game.speed = Math.min(32, game.speed + dt * 0.18);
 
+      // Animate toward a REAL lane coordinate, never index laneX with a fractional lane.
+      // Fractional array indices return undefined and previously corrupted the camera with NaN.
       game.currentLane += (game.targetLane - game.currentLane) * Math.min(1, dt * 10);
-      player.position.x = THREE.MathUtils.lerp(player.position.x, laneX[game.currentLane], Math.min(1, dt * 12));
+      player.position.x = THREE.MathUtils.lerp(player.position.x, laneX[game.targetLane], Math.min(1, dt * 12));
 
       game.vy -= 28 * dt;
       game.y += game.vy * dt;
